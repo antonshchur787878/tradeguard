@@ -1,0 +1,150 @@
+/* Общие стили */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #0d0d0d; /* Темный фон */
+  color: white;
+}
+
+/* Контейнер всего контента */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Стили для неоновой рамки */
+.glow {
+  box-shadow: 0px 0px 15px 2px #ffcc00;
+  border: 1px solid #ffcc00;
+  border-radius: 10px;
+}
+
+/* Заголовки */
+h1, h2, h3 {
+  text-align: center;
+  font-weight: bold;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #ffcc00;
+  text-shadow: 0 0 10px #ffcc00;
+}
+
+/* Навигационная панель */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: black;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.navbar h1 {
+  font-size: 1.8rem;
+}
+
+.navbar select {
+  padding: 5px;
+  background-color: #222;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 5px;
+}
+
+/* Кнопки */
+button {
+  background-color: #ffcc00;
+  color: black;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #ffdb4d;
+}
+
+/* Поля ввода */
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #444;
+  background-color: #222;
+  color: white;
+  border-radius: 5px;
+}
+
+/* Блоки с текстом */
+.feature-box {
+  padding: 20px;
+  text-align: center;
+  background-color: #111;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: 0 0 5px #ffcc00;
+}
+
+.stats-box {
+  padding: 15px;
+  text-align: center;
+  background-color: #111;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 0 0 5px #ffcc00;
+}
+
+/* Карточка входа */
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  background-color: #111;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 15px 2px #ffcc00;
+}
+
+/* График */
+.chart-container {
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+}
+
+/* Футер */
+footer {
+  text-align: center;
+  padding: 15px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .feature-box, .stats-box {
+    font-size: 1.2rem;
+  }
+
+  .login-box {
+    width: 90%;
+  }
+}
+
