@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 const port = 3000;
@@ -187,6 +189,46 @@ app.post("/api/commission/pay", authenticateToken, (req, res) => {
     res.json({ success: true, walletAddress: "0xExampleAddress" });
   } catch (err) {
     res.status(500).json({ error: "Ошибка сервера" });
+  }
+});
+
+// Новый маршрут для пополнения баланса
+app.post("/api/user/top-up", authenticateToken, (req, res) => {
+  const { amount } = req.body;
+  const userId = req.userId;
+
+  // Логика пополнения баланса в базе данных
+  // Пример:
+  // db.updateUserBalance(userId, amount)
+  //   .then(newBalance => res.json({ newBalance }))
+  //   .catch(err => res.status(500).json({ error: 'Ошибка сервера' }));
+
+  res.status(200).json({ newBalance: 100 }); // Временный ответ для примера
+});
+
+// Новый маршрут для получения баланса
+app.get("/api/user/balance", authenticateToken, (req, res) => {
+  const userId = req.userId;
+
+  // Логика получения баланса пользователя из базы данных
+  // Пример:
+  // db.getUserBalance(userId)
+  //   .then(balance => res.json({ balance, isReferral: true }))
+  //   .catch(err => res.status(500).json({ error: 'Ошибка сервера' }));
+
+  res.status(200).json({ balance: 100, isReferral: true }); // Временный ответ для примера
+});
+
+// Получение пути к файлу и директории для ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Обработка маршрутов на стороне клиента
+app.use((req, res, next) => {
+  if (req.accepts('html') && !req.is('json') && !req.path.includes('.')) {
+    res.sendFile(path.resolve(__dirname, 'index.html')); // Укажите путь к вашему index.html
+  } else {
+    next();
   }
 });
 
