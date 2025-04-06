@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { changeLanguage } from "../i18n";
+import { changeLanguage } from "i18next";
 
-// Список бирж с логотипами
 const exchanges = [
   { value: "Bybit", label: "Bybit", icon: "/exchanges/bybit.png" },
   { value: "Binance", label: "Binance", icon: "/exchanges/binance.png" },
@@ -15,7 +14,6 @@ const languages = [
   { code: "ua", name: "Українська", flag: "/flags/ua.png" },
 ];
 
-// Интерфейс для API-ключа
 interface ApiKey {
   _id: string;
   exchange: string;
@@ -28,7 +26,12 @@ const ApiKeys = () => {
   const { t, i18n } = useTranslation();
   const [selectedLang, setSelectedLang] = useState(i18n.language);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [form, setForm] = useState({ exchange: "Bybit", label: "", key: "", secret: "" });
+  const [form, setForm] = useState({
+    exchange: "Bybit",
+    label: "",
+    key: "",
+    secret: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,7 +46,9 @@ const ApiKeys = () => {
     }
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -86,7 +91,7 @@ const ApiKeys = () => {
       const isValid = await validateApiKey();
       if (isValid) {
         const newKey: ApiKey = {
-          _id: Date.now().toString(), // Генерируем уникальный ID
+          _id: Date.now().toString(),
           exchange: form.exchange,
           label: form.label,
           key: form.key,
@@ -110,10 +115,16 @@ const ApiKeys = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
-      if (exchangeDropdownRef.current && !exchangeDropdownRef.current.contains(event.target as Node)) {
+      if (
+        exchangeDropdownRef.current &&
+        !exchangeDropdownRef.current.contains(event.target as Node)
+      ) {
         setIsExchangeDropdownOpen(false);
       }
     };
@@ -125,7 +136,6 @@ const ApiKeys = () => {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans p-6 flex flex-col items-center">
-      {/* Верхняя панель */}
       <header className="fixed top-0 left-0 w-full bg-black p-4 flex justify-between items-center z-50 shadow-[0_0_20px_#FBC30A]">
         <h1 className="text-5xl font-bold text-yellow-400 shadow-[0_0_20px_#FBC30A] px-4 py-2 rounded-lg">
           TradeGuard
@@ -135,7 +145,11 @@ const ApiKeys = () => {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="bg-gray-900 text-white border border-gray-700 p-2 rounded-md flex items-center cursor-pointer"
           >
-            <img src={languages.find((l) => l.code === selectedLang)?.flag} alt={selectedLang} className="w-5 h-3 mr-2" />
+            <img
+              src={languages.find((l) => l.code === selectedLang)?.flag}
+              alt={selectedLang}
+              className="w-5 h-3 mr-2"
+            />
             <span>{languages.find((l) => l.code === selectedLang)?.name}</span>
           </button>
           {isDropdownOpen && (
@@ -150,7 +164,11 @@ const ApiKeys = () => {
                   }}
                   className="flex items-center p-2 hover:bg-gray-700 cursor-pointer"
                 >
-                  <img src={lang.flag} alt={lang.code} className="w-5 h-3 mr-2" />
+                  <img
+                    src={lang.flag}
+                    alt={lang.code}
+                    className="w-5 h-3 mr-2"
+                  />
                   <span>{lang.name}</span>
                 </div>
               ))}
@@ -161,7 +179,6 @@ const ApiKeys = () => {
 
       <div className="mt-24"></div>
 
-      {/* Форма добавления API-ключа */}
       <div className="bg-gray-900 p-6 rounded-lg shadow-[0_0_15px_#FBC30A] w-full max-w-xl">
         <h2 className="text-xl font-bold mb-4">{t("add_api_key")}</h2>
 
@@ -177,7 +194,9 @@ const ApiKeys = () => {
                   src={exchanges.find((ex) => ex.value === form.exchange)?.icon}
                   alt={form.exchange}
                   className="w-5 h-5 mr-2"
-                  onError={(e) => (e.currentTarget.src = "/exchanges/default.png")}
+                  onError={(e) =>
+                    (e.currentTarget.src = "/exchanges/default.png")
+                  }
                 />
                 {exchanges.find((ex) => ex.value === form.exchange)?.label}
               </>
@@ -200,7 +219,9 @@ const ApiKeys = () => {
                     src={ex.icon}
                     alt={ex.label}
                     className="w-5 h-5 mr-2"
-                    onError={(e) => (e.currentTarget.src = "/exchanges/default.png")}
+                    onError={(e) =>
+                      (e.currentTarget.src = "/exchanges/default.png")
+                    }
                   />
                   {ex.label}
                 </div>
@@ -246,7 +267,6 @@ const ApiKeys = () => {
         </button>
       </div>
 
-      {/* Список API-ключей с логотипами */}
       <div className="mt-6 bg-gray-900 p-6 rounded-lg shadow-[0_0_15px_#FBC30A] w-full max-w-xl">
         <h2 className="text-xl font-bold mb-4">{t("my_api_keys")}</h2>
         {apiKeys.length === 0 ? (
@@ -256,17 +276,24 @@ const ApiKeys = () => {
             {apiKeys.map((key, index) => {
               const exchange = exchanges.find((ex) => ex.value === key.exchange);
               return (
-                <li key={key._id} className="p-3 bg-gray-800 rounded-md mb-3 flex justify-between items-center">
+                <li
+                  key={key._id}
+                  className="p-3 bg-gray-800 rounded-md mb-3 flex justify-between items-center"
+                >
                   <div className="flex items-center">
                     {exchange && (
                       <img
                         src={exchange.icon}
                         alt={exchange.label}
                         className="w-5 h-5 mr-2"
-                        onError={(e) => (e.currentTarget.src = "/exchanges/default.png")}
+                        onError={(e) =>
+                          (e.currentTarget.src = "/exchanges/default.png")
+                        }
                       />
                     )}
-                    <span>{key.label || key.exchange} - {key.key}</span>
+                    <span>
+                      {key.label || key.exchange} - {key.key}
+                    </span>
                   </div>
                   <button
                     onClick={() => handleDeleteKey(index)}

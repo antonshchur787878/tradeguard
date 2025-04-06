@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { changeLanguage } from "../i18n";
+import { changeLanguage } from "i18next";
 
-// Интерфейсы для данных
 interface TradingPair {
   symbol: string;
   baseCoin: string;
@@ -29,7 +28,6 @@ interface Filter {
   value: number;
 }
 
-// Опции для выпадающих списков
 const exchanges = [
   { value: "Bybit", label: "Bybit", icon: "/exchanges/bybit.png" },
   { value: "Binance", label: "Binance", icon: "/exchanges/binance.png" },
@@ -84,12 +82,12 @@ type HelpSection =
   | "filters"
   | "final_step";
 
-// Основной компонент
 const CreateBot: React.FC = () => {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [exchange, setExchange] = useState<string>("");
-  const [isExchangeDropdownOpen, setIsExchangeDropdownOpen] = useState<boolean>(false);
+  const [isExchangeDropdownOpen, setIsExchangeDropdownOpen] =
+    useState<boolean>(false);
   const [walletType, setWalletType] = useState<string>("spot");
   const [selectedApiKeyId, setSelectedApiKeyId] = useState<string | null>(null);
   const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
@@ -98,7 +96,8 @@ const CreateBot: React.FC = () => {
   const [baseCoin, setBaseCoin] = useState<string>("");
   const [quoteCoin, setQuoteCoin] = useState<string>("");
   const [isBaseDropdownOpen, setIsBaseDropdownOpen] = useState<boolean>(false);
-  const [isQuoteDropdownOpen, setIsQuoteDropdownOpen] = useState<boolean>(false);
+  const [isQuoteDropdownOpen, setIsQuoteDropdownOpen] =
+    useState<boolean>(false);
   const [allBaseCoins, setAllBaseCoins] = useState<string[]>([]);
   const [filteredBaseCoins, setFilteredBaseCoins] = useState<string[]>([]);
   const [recommendedPairs, setRecommendedPairs] = useState<TradingPair[]>([]);
@@ -111,7 +110,8 @@ const CreateBot: React.FC = () => {
   const [leverage, setLeverage] = useState<number>(1);
   const [marginType, setMarginType] = useState<string>("cross");
   const [tradeMode, setTradeMode] = useState<string>("overlap");
-  const [priceDistribution, setPriceDistribution] = useState<string>("logarithmic");
+  const [priceDistribution, setPriceDistribution] =
+    useState<string>("logarithmic");
   const [orderGridPull, setOrderGridPull] = useState<number>(0.5);
   const [stopAfterDeal, setStopAfterDeal] = useState<boolean>(false);
   const [hedgingEnabled, setHedgingEnabled] = useState<boolean>(false);
@@ -122,7 +122,9 @@ const CreateBot: React.FC = () => {
   const [stopLossEnabled, setStopLossEnabled] = useState<boolean>(false);
   const [stopLoss, setStopLoss] = useState<number>(0);
   const [takeProfit, setTakeProfit] = useState<number>(0);
-  const [filters, setFilters] = useState<Filter[]>([{ type: "rsi", interval: "1min", value: 70 }]);
+  const [filters, setFilters] = useState<Filter[]>([
+    { type: "rsi", interval: "1min", value: 70 },
+  ]);
   const [backtestResult, setBacktestResult] = useState<string>("N/A");
   const baseDropdownRef = useRef<HTMLDivElement>(null);
   const quoteDropdownRef = useRef<HTMLDivElement>(null);
@@ -131,7 +133,6 @@ const CreateBot: React.FC = () => {
 
   const totalSteps = steps.length;
 
-  // Инициализация состояния при загрузке
   useEffect(() => {
     const savedLang = localStorage.getItem("language") || "ru";
     setSelectedLang(savedLang);
@@ -146,7 +147,9 @@ const CreateBot: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch("https://api.bybit.com/v5/market/instruments-info?category=spot")
+    fetch(
+      "https://api.bybit.com/v5/market/instruments-info?category=spot"
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.result?.list) {
@@ -155,9 +158,13 @@ const CreateBot: React.FC = () => {
             baseCoin: item.baseCoin,
             quoteCoin: item.quoteCoin,
           }));
-          const filteredPairs = pairs.filter((pair) => ["USDT", "USDC"].includes(pair.quoteCoin));
+          const filteredPairs = pairs.filter((pair) =>
+            ["USDT", "USDC"].includes(pair.quoteCoin)
+          );
           setRecommendedPairs(filteredPairs);
-          const uniqueBaseCoins = Array.from(new Set(pairs.map((pair) => pair.baseCoin)));
+          const uniqueBaseCoins = Array.from(
+            new Set(pairs.map((pair) => pair.baseCoin))
+          );
           setAllBaseCoins(uniqueBaseCoins);
           setFilteredBaseCoins(uniqueBaseCoins);
         }
@@ -171,16 +178,31 @@ const CreateBot: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (baseDropdownRef.current && !baseDropdownRef.current.contains(event.target as Node)) setIsBaseDropdownOpen(false);
-      if (quoteDropdownRef.current && !quoteDropdownRef.current.contains(event.target as Node)) setIsQuoteDropdownOpen(false);
-      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) setIsLangDropdownOpen(false);
-      if (exchangeDropdownRef.current && !exchangeDropdownRef.current.contains(event.target as Node)) setIsExchangeDropdownOpen(false);
+      if (
+        baseDropdownRef.current &&
+        !baseDropdownRef.current.contains(event.target as Node)
+      )
+        setIsBaseDropdownOpen(false);
+      if (
+        quoteDropdownRef.current &&
+        !quoteDropdownRef.current.contains(event.target as Node)
+      )
+        setIsQuoteDropdownOpen(false);
+      if (
+        langDropdownRef.current &&
+        !langDropdownRef.current.contains(event.target as Node)
+      )
+        setIsLangDropdownOpen(false);
+      if (
+        exchangeDropdownRef.current &&
+        !exchangeDropdownRef.current.contains(event.target as Node)
+      )
+        setIsExchangeDropdownOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Подсчёт завершённых шагов
   const completedSteps = (): number => {
     let completed = 0;
     if (exchange) completed++;
@@ -202,17 +224,23 @@ const CreateBot: React.FC = () => {
     return completed;
   };
 
-  // Опции для котируемых монет
   const quoteCoinOptions: CoinOption[] = [
-    { value: "USDT", label: "USDT", icon: "https://assets.coincap.io/assets/icons/usdt@2x.png" },
-    { value: "USDC", label: "USDC", icon: "https://assets.coincap.io/assets/icons/usdc@2x.png" },
+    {
+      value: "USDT",
+      label: "USDT",
+      icon: "https://assets.coincap.io/assets/icons/usdt@2x.png",
+    },
+    {
+      value: "USDC",
+      label: "USDC",
+      icon: "https://assets.coincap.io/assets/icons/usdc@2x.png",
+    },
   ];
 
   const getCoinIcon = (coin: string): string => {
     return `https://assets.coincap.io/assets/icons/${coin.toLowerCase()}@2x.png`;
   };
 
-  // Обработчики событий
   const handleLanguageChange = (lang: string): void => {
     setSelectedLang(lang);
     changeLanguage(lang);
@@ -231,7 +259,9 @@ const CreateBot: React.FC = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    const filtered = allBaseCoins.filter((coin) => coin.toLowerCase().includes(term));
+    const filtered = allBaseCoins.filter((coin) =>
+      coin.toLowerCase().includes(term)
+    );
     setFilteredBaseCoins(filtered);
   };
 
@@ -257,7 +287,8 @@ const CreateBot: React.FC = () => {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Ошибка получения баланса");
+      if (!response.ok)
+        throw new Error(data.error || "Ошибка получения баланса");
       setUserBalance(data.total || 0);
     } catch (error: any) {
       setBalanceError(`Ошибка: ${error.message}`);
@@ -274,7 +305,11 @@ const CreateBot: React.FC = () => {
     setFilters([...filters, { type: "rsi", interval: "1min", value: 70 }]);
   };
 
-  const handleUpdateFilter = (index: number, field: keyof Filter, value: string | number): void => {
+  const handleUpdateFilter = (
+    index: number,
+    field: keyof Filter,
+    value: string | number
+  ): void => {
     const updatedFilters = [...filters];
     updatedFilters[index] = { ...updatedFilters[index], [field]: value };
     setFilters(updatedFilters);
@@ -341,30 +376,109 @@ const CreateBot: React.FC = () => {
     const success = riskFactor < 0.1;
     const result = success ? "Success" : "Failure";
     setBacktestResult(result);
-    alert(`${t("backtest_result") || "Результат бэктеста"}: ${result}`);
+    alert(
+      `${t("backtest_result") || "Результат бэктеста"}: ${result}`
+    );
   };
 
-  // Вспомогательные функции для интерфейса
-  const getHelpContent = (section: HelpSection): { title: string; content: string; link: string } => {
+  const getHelpContent = (
+    section: HelpSection
+  ): { title: string; content: string; link: string } => {
     const helpContent = {
-      exchange: { title: t("exchange"), content: t("exchange_help") || "Выберите биржу для торговли.", link: t("learn_more") || "Узнать больше" },
-      api_key: { title: t("api_key"), content: t("api_key_help") || "Выберите API ключ для доступа к бирже.", link: t("learn_more") || "Узнать больше" },
-      algorithm: { title: t("algorithm"), content: t("algorithm_help") || "Выберите стратегию торговли.", link: t("learn_more") || "Узнать больше" },
-      trading_pair: { title: t("trading_pair"), content: t("trading_pair_help") || "Выберите торговую пару.", link: t("learn_more") || "Узнать больше" },
-      deposit: { title: t("deposit"), content: t("deposit_help") || "Укажите сумму депозита.", link: t("learn_more") || "Узнать больше" },
-      leverage: { title: t("leverage"), content: t("leverage_help") || "Установите плечо для торговли.", link: t("learn_more") || "Узнать больше" },
-      margin_type: { title: t("margin_type"), content: t("margin_type_help") || "Выберите тип маржи.", link: t("learn_more") || "Узнать больше" },
-      trade_mode: { title: t("trade_mode"), content: t("trade_mode_help") || "Выберите режим торговли.", link: t("learn_more") || "Узнать больше" },
-      price_distribution: { title: t("price_distribution"), content: t("price_distribution_help") || "Выберите распределение цен.", link: t("learn_more") || "Узнать больше" },
-      order_grid_pull: { title: t("order_grid_pull"), content: t("order_grid_pull_help") || "Установите подтяжку сетки ордеров.", link: t("learn_more") || "Узнать больше" },
-      stop_after_deal: { title: t("stop_after_deal"), content: t("stop_after_deal_help") || "Остановка бота после сделки.", link: t("learn_more") || "Узнать больше" },
-      hedging: { title: t("hedging"), content: t("hedging_help") || "Настройте хеджирование.", link: t("learn_more") || "Узнать больше" },
-      stop_loss: { title: t("stop_loss"), content: t("stop_loss_help") || "Установите стоп-лосс.", link: t("learn_more") || "Узнать больше" },
-      take_profit: { title: t("take_profit"), content: t("take_profit_help") || "Установите тейк-профит.", link: t("learn_more") || "Узнать больше" },
-      filters: { title: t("filters"), content: t("filters_help") || "Добавьте фильтры для торговли.", link: t("learn_more") || "Узнать больше" },
-      final_step: { title: t("final_step"), content: t("backtest_help") || "Запустите бэктест или создайте бота.", link: t("learn_more") || "Узнать больше" },
+      exchange: {
+        title: t("exchange"),
+        content:
+          t("exchange_help") || "Выберите биржу для торговли.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      api_key: {
+        title: t("api_key"),
+        content:
+          t("api_key_help") || "Выберите API ключ для доступа к бирже.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      algorithm: {
+        title: t("algorithm"),
+        content: t("algorithm_help") || "Выберите стратегию торговли.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      trading_pair: {
+        title: t("trading_pair"),
+        content: t("trading_pair_help") || "Выберите торговую пару.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      deposit: {
+        title: t("deposit"),
+        content: t("deposit_help") || "Укажите сумму депозита.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      leverage: {
+        title: t("leverage"),
+        content: t("leverage_help") || "Установите плечо для торговли.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      margin_type: {
+        title: t("margin_type"),
+        content: t("margin_type_help") || "Выберите тип маржи.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      trade_mode: {
+        title: t("trade_mode"),
+        content: t("trade_mode_help") || "Выберите режим торговли.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      price_distribution: {
+        title: t("price_distribution"),
+        content:
+          t("price_distribution_help") || "Выберите распределение цен.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      order_grid_pull: {
+        title: t("order_grid_pull"),
+        content:
+          t("order_grid_pull_help") || "Установите подтяжку сетки ордеров.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      stop_after_deal: {
+        title: t("stop_after_deal"),
+        content:
+          t("stop_after_deal_help") || "Остановка бота после сделки.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      hedging: {
+        title: t("hedging"),
+        content: t("hedging_help") || "Настройте хеджирование.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      stop_loss: {
+        title: t("stop_loss"),
+        content: t("stop_loss_help") || "Установите стоп-лосс.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      take_profit: {
+        title: t("take_profit"),
+        content: t("take_profit_help") || "Установите тейк-профит.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      filters: {
+        title: t("filters"),
+        content: t("filters_help") || "Добавьте фильтры для торговли.",
+        link: t("learn_more") || "Узнать больше",
+      },
+      final_step: {
+        title: t("final_step"),
+        content:
+          t("backtest_help") || "Запустите бэктест или создайте бота.",
+        link: t("learn_more") || "Узнать больше",
+      },
     };
-    return helpContent[section] || { title: t("help"), content: t("general_help") || "Общая помощь.", link: t("learn_more") || "Узнать больше" };
+    return (
+      helpContent[section] || {
+        title: t("help"),
+        content: t("general_help") || "Общая помощь.",
+        link: t("learn_more") || "Узнать больше",
+      }
+    );
   };
 
   const getLeverageColor = (value: number): string => {
@@ -373,18 +487,24 @@ const CreateBot: React.FC = () => {
     return "bg-red-500";
   };
 
-  // Рендеринг интерфейса
   return (
     <div className="min-h-screen bg-black text-white font-sans flex">
-      <div className="w-1/5 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] fixed top-0 left-0 h-screen overflow-y-auto" style={{ marginTop: "96px" }}>
-        <h2 className="text-2xl font-bold text-yellow-400 mb-4">{t("navigation") || "Навигация"}</h2>
+      <div
+        className="w-1/5 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] fixed top-0 left-0 h-screen overflow-y-auto"
+        style={{ marginTop: "96px" }}
+      >
+        <h2 className="text-2xl font-bold text-yellow-400 mb-4">
+          {t("navigation") || "Навигация"}
+        </h2>
         <ul>
           {steps.map((step) => (
             <li
               key={step.id}
               onClick={() => setCurrentStep(step.id)}
               className={`p-2 cursor-pointer rounded-md mb-2 ${
-                currentStep === step.id ? "bg-yellow-400 text-black" : "bg-gray-700 text-white"
+                currentStep === step.id
+                  ? "bg-yellow-400 text-black"
+                  : "bg-gray-700 text-white"
               } hover:bg-yellow-500 transition-all duration-200`}
             >
               {t(step.name) || step.name}
@@ -404,11 +524,17 @@ const CreateBot: React.FC = () => {
               className="bg-gray-900 text-white border border-gray-700 p-2 rounded-md flex items-center cursor-pointer shadow-[0_0_10px_#FBC30A]"
             >
               <img
-                src={languages.find((l) => l.code === selectedLang)?.flag || "/flags/ru.png"}
+                src={
+                  languages.find((l) => l.code === selectedLang)?.flag ||
+                  "/flags/ru.png"
+                }
                 alt={selectedLang}
                 className="w-5 h-3 mr-2"
               />
-              <span className="text-sm">{languages.find((l) => l.code === selectedLang)?.name || "Русский"}</span>
+              <span className="text-sm">
+                {languages.find((l) => l.code === selectedLang)?.name ||
+                  "Русский"}
+              </span>
             </button>
             {isLangDropdownOpen && (
               <div className="absolute top-full mt-2 bg-gray-900 border border-gray-700 rounded-md w-32 shadow-[0_0_10px_#FBC30A]">
@@ -418,7 +544,11 @@ const CreateBot: React.FC = () => {
                     onClick={() => handleLanguageChange(lang.code)}
                     className="flex items-center p-2 hover:bg-gray-700 cursor-pointer text-sm"
                   >
-                    <img src={lang.flag} alt={lang.code} className="w-5 h-3 mr-2" />
+                    <img
+                      src={lang.flag}
+                      alt={lang.code}
+                      className="w-5 h-3 mr-2"
+                    />
                     <span>{lang.name}</span>
                   </div>
                 ))}
@@ -428,9 +558,13 @@ const CreateBot: React.FC = () => {
         </header>
 
         <div className="mt-24">
-          <h2 className="text-3xl font-bold text-yellow-400 mb-6">{t("create_bot") || "Создать бота"}</h2>
+          <h2 className="text-3xl font-bold text-yellow-400 mb-6">
+            {t("create_bot") || "Создать бота"}
+          </h2>
           <div className="mb-6">
-            <p className="text-white">{t("step") || "Шаг"} {currentStep} / {totalSteps}</p>
+            <p className="text-white">
+              {t("step") || "Шаг"} {currentStep} / {totalSteps}
+            </p>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div
                 className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
@@ -442,19 +576,27 @@ const CreateBot: React.FC = () => {
           {currentStep >= 1 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("select_exchange") || "Выберите биржу"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("select_exchange") || "Выберите биржу"}
+                </h3>
                 <div className="relative" ref={exchangeDropdownRef}>
                   <div
                     className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md cursor-pointer flex items-center"
-                    onClick={() => setIsExchangeDropdownOpen(!isExchangeDropdownOpen)}
+                    onClick={() =>
+                      setIsExchangeDropdownOpen(!isExchangeDropdownOpen)
+                    }
                   >
                     {exchange ? (
                       <>
                         <img
-                          src={exchanges.find((ex) => ex.value === exchange)?.icon}
+                          src={
+                            exchanges.find((ex) => ex.value === exchange)?.icon
+                          }
                           alt={exchange}
                           className="w-5 h-5 mr-2"
-                          onError={(e) => (e.currentTarget.src = "/exchanges/default.png")}
+                          onError={(e) =>
+                            (e.currentTarget.src = "/exchanges/default.png")
+                          }
                         />
                         {exchanges.find((ex) => ex.value === exchange)?.label}
                       </>
@@ -478,7 +620,9 @@ const CreateBot: React.FC = () => {
                             src={ex.icon}
                             alt={ex.label}
                             className="w-5 h-5 mr-2"
-                            onError={(e) => (e.currentTarget.src = "/exchanges/default.png")}
+                            onError={(e) =>
+                              (e.currentTarget.src = "/exchanges/default.png")
+                            }
                           />
                           {ex.label}
                         </div>
@@ -489,7 +633,9 @@ const CreateBot: React.FC = () => {
 
                 {exchange && (
                   <div className="mt-4">
-                    <h3 className="text-xl font-bold mb-2">{t("wallet_type") || "Тип кошелька"}</h3>
+                    <h3 className="text-xl font-bold mb-2">
+                      {t("wallet_type") || "Тип кошелька"}
+                    </h3>
                     <select
                       value={walletType}
                       onChange={(e) => setWalletType(e.target.value)}
@@ -497,7 +643,8 @@ const CreateBot: React.FC = () => {
                     >
                       {walletTypes.map((type) => (
                         <option key={type.value} value={type.value}>
-                          {t(type.label.toLowerCase() + "_wallet") || type.label}
+                          {t(type.label.toLowerCase() + "_wallet") ||
+                            type.label}
                         </option>
                       ))}
                     </select>
@@ -505,9 +652,16 @@ const CreateBot: React.FC = () => {
                 )}
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("exchange").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("exchange").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("exchange").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("exchange").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("exchange").link}
+                </a>
               </div>
             </div>
           )}
@@ -515,7 +669,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 2 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("select_api_key") || "Выберите API ключ"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("select_api_key") || "Выберите API ключ"}
+                </h3>
                 <select
                   value={selectedApiKeyId || ""}
                   onChange={(e) => {
@@ -525,7 +681,9 @@ const CreateBot: React.FC = () => {
                   }}
                   className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 >
-                  <option value="">{t("select_api_key") || "Выберите API ключ"}</option>
+                  <option value="">
+                    {t("select_api_key") || "Выберите API ключ"}
+                  </option>
                   {savedApiKeys
                     .filter((key) => key.exchange === exchange)
                     .map((key) => (
@@ -541,7 +699,9 @@ const CreateBot: React.FC = () => {
                     ) : balanceError ? (
                       <p className="text-red-500">{balanceError}</p>
                     ) : (
-                      <p>{t("user_balance") || "Баланс"}: {userBalance} USDT</p>
+                      <p>
+                        {t("user_balance") || "Баланс"}: {userBalance} USDT
+                      </p>
                     )}
                     <button
                       onClick={handleRefreshBalance}
@@ -554,9 +714,16 @@ const CreateBot: React.FC = () => {
                 )}
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("api_key").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("api_key").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("api_key").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("api_key").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("api_key").link}
+                </a>
               </div>
             </div>
           )}
@@ -564,11 +731,15 @@ const CreateBot: React.FC = () => {
           {currentStep >= 3 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("algorithm") || "Алгоритм"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("algorithm") || "Алгоритм"}
+                </h3>
                 <div className="flex justify-center space-x-6">
                   <button
                     className={`p-4 text-xl font-bold rounded-md transition-all duration-200 ${
-                      algorithm === "long" ? "bg-green-600 text-white" : "bg-gray-700 text-white"
+                      algorithm === "long"
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-700 text-white"
                     } hover:bg-green-500`}
                     onClick={() => {
                       setAlgorithm("long");
@@ -579,7 +750,9 @@ const CreateBot: React.FC = () => {
                   </button>
                   <button
                     className={`p-4 text-xl font-bold rounded-md transition-all duration-200 ${
-                      algorithm === "short" ? "bg-red-600 text-white" : "bg-gray-700 text-white"
+                      algorithm === "short"
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-700 text-white"
                     } hover:bg-red-500`}
                     onClick={() => {
                       setAlgorithm("short");
@@ -591,9 +764,16 @@ const CreateBot: React.FC = () => {
                 </div>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("algorithm").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("algorithm").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("algorithm").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("algorithm").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("algorithm").link}
+                </a>
               </div>
             </div>
           )}
@@ -601,7 +781,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 4 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("recommended_pairs") || "Рекомендуемые пары"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("recommended_pairs") || "Рекомендуемые пары"}
+                </h3>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {recommendedPairs.slice(0, 10).map((pair) => (
                     <button
@@ -613,20 +795,28 @@ const CreateBot: React.FC = () => {
                         src={getCoinIcon(pair.baseCoin)}
                         alt={pair.baseCoin}
                         className="w-5 h-5 mr-2"
-                        onError={(e) => (e.currentTarget.src = "/coins/default.png")}
+                        onError={(e) =>
+                          (e.currentTarget.src = "/coins/default.png")
+                        }
                       />
                       {pair.symbol}
                     </button>
                   ))}
                 </div>
 
-                <h3 className="text-xl font-bold mb-2">{t("trading_pair") || "Торговая пара"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("trading_pair") || "Торговая пара"}
+                </h3>
                 <div className="flex gap-4">
                   <div className="w-1/2 relative" ref={baseDropdownRef}>
-                    <label className="block mb-2">{t("base_coin") || "Базовая монета"}</label>
+                    <label className="block mb-2">
+                      {t("base_coin") || "Базовая монета"}
+                    </label>
                     <div
                       className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md cursor-pointer flex items-center"
-                      onClick={() => setIsBaseDropdownOpen(!isBaseDropdownOpen)}
+                      onClick={() =>
+                        setIsBaseDropdownOpen(!isBaseDropdownOpen)
+                      }
                     >
                       {baseCoin ? (
                         <>
@@ -634,7 +824,9 @@ const CreateBot: React.FC = () => {
                             src={getCoinIcon(baseCoin)}
                             alt={baseCoin}
                             className="w-5 h-5 mr-2"
-                            onError={(e) => (e.currentTarget.src = "/coins/default.png")}
+                            onError={(e) =>
+                              (e.currentTarget.src = "/coins/default.png")
+                            }
                           />
                           {baseCoin}
                         </>
@@ -666,7 +858,9 @@ const CreateBot: React.FC = () => {
                               src={getCoinIcon(coin)}
                               alt={coin}
                               className="w-5 h-5 mr-2"
-                              onError={(e) => (e.currentTarget.src = "/coins/default.png")}
+                              onError={(e) =>
+                                (e.currentTarget.src = "/coins/default.png")
+                              }
                             />
                             {coin}
                           </div>
@@ -676,23 +870,34 @@ const CreateBot: React.FC = () => {
                   </div>
 
                   <div className="w-1/2 relative" ref={quoteDropdownRef}>
-                    <label className="block mb-2">{t("quote_coin") || "Котируемая монета"}</label>
+                    <label className="block mb-2">
+                      {t("quote_coin") || "Котируемая монета"}
+                    </label>
                     <div
                       className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md cursor-pointer flex items-center"
-                      onClick={() => setIsQuoteDropdownOpen(!isQuoteDropdownOpen)}
+                      onClick={() =>
+                        setIsQuoteDropdownOpen(!isQuoteDropdownOpen)
+                      }
                     >
                       {quoteCoin ? (
                         <>
                           <img
-                            src={quoteCoinOptions.find((opt) => opt.value === quoteCoin)?.icon}
+                            src={
+                              quoteCoinOptions.find(
+                                (opt) => opt.value === quoteCoin
+                              )?.icon
+                            }
                             alt={quoteCoin}
                             className="w-5 h-5 mr-2"
-                            onError={(e) => (e.currentTarget.src = "/coins/default.png")}
+                            onError={(e) =>
+                              (e.currentTarget.src = "/coins/default.png")
+                            }
                           />
                           {quoteCoin}
                         </>
                       ) : (
-                        t("select_quote_coin") || "Выберите котируемую монету"
+                        t("select_quote_coin") ||
+                        "Выберите котируемую монету"
                       )}
                     </div>
                     {isQuoteDropdownOpen && (
@@ -711,7 +916,9 @@ const CreateBot: React.FC = () => {
                               src={option.icon}
                               alt={option.label}
                               className="w-5 h-5 mr-2"
-                              onError={(e) => (e.currentTarget.src = "/coins/default.png")}
+                              onError={(e) =>
+                                (e.currentTarget.src = "/coins/default.png")
+                              }
                             />
                             {option.label}
                           </div>
@@ -722,9 +929,18 @@ const CreateBot: React.FC = () => {
                 </div>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("trading_pair").title}</h4>
-                <p className="text-sm">{getHelpContent("trading_pair").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("trading_pair").link}</a>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("trading_pair").title}
+                </h4>
+                <p className="text-sm">
+                  {getHelpContent("trading_pair").content}
+                </p>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("trading_pair").link}
+                </a>
               </div>
             </div>
           )}
@@ -732,7 +948,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 5 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("deposit") || "Депозит"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("deposit") || "Депозит"}
+                </h3>
                 <div className="flex items-center mb-2">
                   <input
                     type="number"
@@ -746,7 +964,10 @@ const CreateBot: React.FC = () => {
                     className="w-full p-3 mb-2 border border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   />
                   <img
-                    src={quoteCoinOptions.find((opt) => opt.value === quoteCoin)?.icon || "/coins/default.png"}
+                    src={
+                      quoteCoinOptions.find((opt) => opt.value === quoteCoin)
+                        ?.icon || "/coins/default.png"
+                    }
                     alt={quoteCoin}
                     className="w-6 h-6 ml-2"
                   />
@@ -754,11 +975,16 @@ const CreateBot: React.FC = () => {
                 </div>
                 <div className="flex items-center mb-2">
                   {isBalanceLoading ? (
-                    <p className="text-sm text-gray-400">{t("loading_balance") || "Загрузка баланса..."}</p>
+                    <p className="text-sm text-gray-400">
+                      {t("loading_balance") || "Загрузка баланса..."}
+                    </p>
                   ) : balanceError ? (
                     <p className="text-sm text-red-500">{balanceError}</p>
                   ) : (
-                    <p className="text-sm text-gray-400">{t("user_balance") || "Баланс"}: {userBalance} {quoteCoin || "USDT"}</p>
+                    <p className="text-sm text-gray-400">
+                      {t("user_balance") || "Баланс"}: {userBalance}{" "}
+                      {quoteCoin || "USDT"}
+                    </p>
                   )}
                   <button
                     onClick={handleRefreshBalance}
@@ -770,17 +996,30 @@ const CreateBot: React.FC = () => {
                 </div>
                 {deposit > userBalance && (
                   <div className="flex items-center text-red-500 mb-4">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
                       <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V7h2v2z" />
                     </svg>
-                    <span>{t("insufficient_balance") || "Недостаточно средств"}</span>
+                    <span>
+                      {t("insufficient_balance") || "Недостаточно средств"}
+                    </span>
                   </div>
                 )}
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("deposit").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("deposit").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("deposit").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("deposit").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("deposit").link}
+                </a>
               </div>
             </div>
           )}
@@ -788,7 +1027,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 6 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("leverage") || "Плечо"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("leverage") || "Плечо"}
+                </h3>
                 <div className="relative">
                   <input
                     type="range"
@@ -800,7 +1041,9 @@ const CreateBot: React.FC = () => {
                       setLeverage(value);
                       if (value > 0) setCurrentStep(7);
                     }}
-                    className={`w-full mb-2 h-2 rounded-lg appearance-none ${getLeverageColor(leverage)}`}
+                    className={`w-full mb-2 h-2 rounded-lg appearance-none ${getLeverageColor(
+                      leverage
+                    )}`}
                   />
                   <div className="flex justify-between text-sm text-gray-400">
                     <span>1</span>
@@ -810,17 +1053,31 @@ const CreateBot: React.FC = () => {
                 </div>
                 {leverage > 10 && (
                   <div className="flex items-center text-red-500 mb-4">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
                       <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V7h2v2z" />
                     </svg>
-                    <span>{t("high_leverage_warning") || "Высокое плечо увеличивает риск"}</span>
+                    <span>
+                      {t("high_leverage_warning") ||
+                        "Высокое плечо увеличивает риск"}
+                    </span>
                   </div>
                 )}
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("leverage").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("leverage").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("leverage").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("leverage").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("leverage").link}
+                </a>
               </div>
             </div>
           )}
@@ -828,7 +1085,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 7 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("margin_type") || "Тип маржи"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("margin_type") || "Тип маржи"}
+                </h3>
                 <select
                   value={marginType}
                   onChange={(e) => {
@@ -837,14 +1096,27 @@ const CreateBot: React.FC = () => {
                   }}
                   className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 >
-                  <option value="cross">{t("cross_margin") || "Кросс-маржа"}</option>
-                  <option value="isolated">{t("isolated_margin") || "Изолированная маржа"}</option>
+                  <option value="cross">
+                    {t("cross_margin") || "Кросс-маржа"}
+                  </option>
+                  <option value="isolated">
+                    {t("isolated_margin") || "Изолированная маржа"}
+                  </option>
                 </select>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("margin_type").title}</h4>
-                <p className="text-sm">{getHelpContent("margin_type").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("margin_type").link}</a>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("margin_type").title}
+                </h4>
+                <p className="text-sm">
+                  {getHelpContent("margin_type").content}
+                </p>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("margin_type").link}
+                </a>
               </div>
             </div>
           )}
@@ -852,7 +1124,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 8 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("trade_mode") || "Режим торговли"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("trade_mode") || "Режим торговли"}
+                </h3>
                 <select
                   value={tradeMode}
                   onChange={(e) => {
@@ -861,16 +1135,31 @@ const CreateBot: React.FC = () => {
                   }}
                   className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 >
-                  <option value="overlap">{t("overlap_mode") || "Перекрытие"}</option>
-                  <option value="order_grid">{t("order_grid_mode") || "Сетка ордеров"}</option>
-                  <option value="martingale">{t("martingale_mode") || "Мартингейл"}</option>
-                  <option value="custom">{t("custom_mode") || "Пользовательский"}</option>
+                  <option value="overlap">
+                    {t("overlap_mode") || "Перекрытие"}
+                  </option>
+                  <option value="order_grid">
+                    {t("order_grid_mode") || "Сетка ордеров"}
+                  </option>
+                  <option value="martingale">
+                    {t("martingale_mode") || "Мартингейл"}
+                  </option>
+                  <option value="custom">
+                    {t("custom_mode") || "Пользовательский"}
+                  </option>
                 </select>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("trade_mode").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("trade_mode").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("trade_mode").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("trade_mode").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("trade_mode").link}
+                </a>
               </div>
             </div>
           )}
@@ -878,7 +1167,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 9 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("price_distribution") || "Распределение цен"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("price_distribution") || "Распределение цен"}
+                </h3>
                 <select
                   value={priceDistribution}
                   onChange={(e) => {
@@ -887,14 +1178,27 @@ const CreateBot: React.FC = () => {
                   }}
                   className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 >
-                  <option value="logarithmic">{t("logarithmic_distribution") || "Логарифмическое"}</option>
-                  <option value="linear">{t("linear_distribution") || "Линейное"}</option>
+                  <option value="logarithmic">
+                    {t("logarithmic_distribution") || "Логарифмическое"}
+                  </option>
+                  <option value="linear">
+                    {t("linear_distribution") || "Линейное"}
+                  </option>
                 </select>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("price_distribution").title}</h4>
-                <p className="text-sm">{getHelpContent("price_distribution").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("price_distribution").link}</a>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("price_distribution").title}
+                </h4>
+                <p className="text-sm">
+                  {getHelpContent("price_distribution").content}
+                </p>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("price_distribution").link}
+                </a>
               </div>
             </div>
           )}
@@ -902,7 +1206,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 10 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("order_grid_pull") || "Подтяжка сетки ордеров"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("order_grid_pull") || "Подтяжка сетки ордеров"}
+                </h3>
                 <input
                   type="number"
                   step="0.1"
@@ -917,9 +1223,18 @@ const CreateBot: React.FC = () => {
                 />
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("order_grid_pull").title}</h4>
-                <p className="text-sm">{getHelpContent("order_grid_pull").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("order_grid_pull").link}</a>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("order_grid_pull").title}
+                </h4>
+                <p className="text-sm">
+                  {getHelpContent("order_grid_pull").content}
+                </p>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("order_grid_pull").link}
+                </a>
               </div>
             </div>
           )}
@@ -927,7 +1242,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 11 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("stop_after_deal") || "Остановка после сделки"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("stop_after_deal") || "Остановка после сделки"}
+                </h3>
                 <div className="flex items-center mb-4">
                   <input
                     type="checkbox"
@@ -938,13 +1255,25 @@ const CreateBot: React.FC = () => {
                     }}
                     className="mr-2"
                   />
-                  <span>{t("enable_stop_after_deal") || "Включить остановку после сделки"}</span>
+                  <span>
+                    {t("enable_stop_after_deal") ||
+                      "Включить остановку после сделки"}
+                  </span>
                 </div>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("stop_after_deal").title}</h4>
-                <p className="text-sm">{getHelpContent("stop_after_deal").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("stop_after_deal").link}</a>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("stop_after_deal").title}
+                </h4>
+                <p className="text-sm">
+                  {getHelpContent("stop_after_deal").content}
+                </p>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("stop_after_deal").link}
+                </a>
               </div>
             </div>
           )}
@@ -952,7 +1281,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 12 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("hedging") || "Хеджирование"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("hedging") || "Хеджирование"}
+                </h3>
                 <div className="flex items-center mb-4">
                   <input
                     type="checkbox"
@@ -963,43 +1294,65 @@ const CreateBot: React.FC = () => {
                     }}
                     className="mr-2"
                   />
-                  <span>{t("enable_hedging") || "Включить хеджирование"}</span>
+                  <span>
+                    {t("enable_hedging") || "Включить хеджирование"}
+                  </span>
                 </div>
                 {hedgingEnabled && (
                   <>
                     <div className="mb-4">
-                      <label className="block mb-2">{t("hedging_trigger") || "Триггер хеджирования"}</label>
+                      <label className="block mb-2">
+                        {t("hedging_trigger") || "Триггер хеджирования"}
+                      </label>
                       <div className="flex items-center mb-2">
                         <select
                           value={hedgingTriggerType}
                           onChange={(e) => setHedgingTriggerType(e.target.value)}
                           className="w-1/3 p-2 mr-2 border border-gray-700 bg-gray-800 text-white rounded-md"
                         >
-                          <option value="amount">{t("amount") || "Сумма"}</option>
-                          <option value="percent">{t("percent") || "Процент"}</option>
+                          <option value="amount">
+                            {t("amount") || "Сумма"}
+                          </option>
+                          <option value="percent">
+                            {t("percent") || "Процент"}
+                          </option>
                         </select>
                         <input
                           type="number"
                           value={hedgingTriggerValue}
-                          onChange={(e) => setHedgingTriggerValue(Number(e.target.value))}
+                          onChange={(e) =>
+                            setHedgingTriggerValue(Number(e.target.value))
+                          }
                           className="w-1/3 p-2 border border-gray-700 bg-gray-800 text-white rounded-md"
                         />
-                        <span className="ml-2">{hedgingTriggerType === "amount" ? quoteCoin || "USDT" : "%"}</span>
+                        <span className="ml-2">
+                          {hedgingTriggerType === "amount"
+                            ? quoteCoin || "USDT"
+                            : "%"}
+                        </span>
                       </div>
                     </div>
                     <div className="mb-4">
-                      <label className="block mb-2">{t("hedging_direction") || "Направление хеджирования"}</label>
+                      <label className="block mb-2">
+                        {t("hedging_direction") || "Направление хеджирования"}
+                      </label>
                       <select
                         value={hedgingDirection}
                         onChange={(e) => setHedgingDirection(e.target.value)}
                         className="w-full p-3 border border-gray-700 bg-gray-800 text-white rounded-md"
                       >
-                        <option value="opposite">{t("opposite_direction") || "Противоположное"}</option>
-                        <option value="same">{t("same_direction") || "То же"}</option>
+                        <option value="opposite">
+                          {t("opposite_direction") || "Противоположное"}
+                        </option>
+                        <option value="same">
+                          {t("same_direction") || "То же"}
+                        </option>
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label className="block mb-2">{t("hedging_volume") || "Объем хеджирования"}</label>
+                      <label className="block mb-2">
+                        {t("hedging_volume") || "Объем хеджирования"}
+                      </label>
                       <input
                         type="number"
                         min="0"
@@ -1017,9 +1370,16 @@ const CreateBot: React.FC = () => {
                 )}
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("hedging").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("hedging").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("hedging").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("hedging").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("hedging").link}
+                </a>
               </div>
             </div>
           )}
@@ -1027,7 +1387,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 13 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("stop_loss") || "Стоп-лосс"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("stop_loss") || "Стоп-лосс"}
+                </h3>
                 <div className="flex items-center mb-4">
                   <input
                     type="checkbox"
@@ -1035,7 +1397,9 @@ const CreateBot: React.FC = () => {
                     onChange={(e) => setStopLossEnabled(e.target.checked)}
                     className="mr-2"
                   />
-                  <span>{t("enable_stop_loss") || "Включить стоп-лосс"}</span>
+                  <span>
+                    {t("enable_stop_loss") || "Включить стоп-лосс"}
+                  </span>
                 </div>
                 {stopLossEnabled && (
                   <input
@@ -1060,9 +1424,16 @@ const CreateBot: React.FC = () => {
                 )}
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("stop_loss").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("stop_loss").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("stop_loss").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("stop_loss").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("stop_loss").link}
+                </a>
               </div>
             </div>
           )}
@@ -1070,7 +1441,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 14 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("take_profit") || "Тейк-профит"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("take_profit") || "Тейк-профит"}
+                </h3>
                 <div className="flex items-center mb-2">
                   <input
                     type="number"
@@ -1084,7 +1457,10 @@ const CreateBot: React.FC = () => {
                     className="w-full p-3 mb-2 border border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   />
                   <img
-                    src={quoteCoinOptions.find((opt) => opt.value === quoteCoin)?.icon || "/coins/default.png"}
+                    src={
+                      quoteCoinOptions.find((opt) => opt.value === quoteCoin)
+                        ?.icon || "/coins/default.png"
+                    }
                     alt={quoteCoin}
                     className="w-6 h-6 ml-2"
                   />
@@ -1092,9 +1468,18 @@ const CreateBot: React.FC = () => {
                 </div>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("take_profit").title}</h4>
-                <p className="text-sm">{getHelpContent("take_profit").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("take_profit").link}</a>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("take_profit").title}
+                </h4>
+                <p className="text-sm">
+                  {getHelpContent("take_profit").content}
+                </p>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("take_profit").link}
+                </a>
               </div>
             </div>
           )}
@@ -1102,31 +1487,45 @@ const CreateBot: React.FC = () => {
           {currentStep >= 15 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("filters") || "Фильтры"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("filters") || "Фильтры"}
+                </h3>
                 {filters.map((filter, index) => (
                   <div key={index} className="flex items-center mb-2">
                     <select
                       value={filter.type}
-                      onChange={(e) => handleUpdateFilter(index, "type", e.target.value)}
+                      onChange={(e) =>
+                        handleUpdateFilter(index, "type", e.target.value)
+                      }
                       className="w-1/3 p-2 mr-2 border border-gray-700 bg-gray-800 text-white rounded-md"
                     >
-                      <option value="rsi">{t("rsi_filter") || "RSI"}</option>
-                      <option value="cci">{t("cci_filter") || "CCI"}</option>
+                      <option value="rsi">
+                        {t("rsi_filter") || "RSI"}
+                      </option>
+                      <option value="cci">
+                        {t("cci_filter") || "CCI"}
+                      </option>
                     </select>
                     <select
                       value={filter.interval}
-                      onChange={(e) => handleUpdateFilter(index, "interval", e.target.value)}
+                      onChange={(e) =>
+                        handleUpdateFilter(index, "interval", e.target.value)
+                      }
                       className="w-1/3 p-2 mr-2 border border-gray-700 bg-gray-800 text-white rounded-md"
                     >
                       <option value="1min">{t("1min") || "1 минута"}</option>
                       <option value="5min">{t("5min") || "5 минут"}</option>
-                      <option value="15min">{t("15min") || "15 минут"}</option>
+                      <option value="15min">
+                        {t("15min") || "15 минут"}
+                      </option>
                     </select>
                     <input
                       type="number"
                       min="0"
                       value={filter.value}
-                      onChange={(e) => handleUpdateFilter(index, "value", Number(e.target.value))}
+                      onChange={(e) =>
+                        handleUpdateFilter(index, "value", Number(e.target.value))
+                      }
                       className="w-1/3 p-2 mr-2 border border-gray-700 bg-gray-800 text-white rounded-md"
                     />
                     <button
@@ -1151,9 +1550,16 @@ const CreateBot: React.FC = () => {
                 </button>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("filters").title}</h4>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("filters").title}
+                </h4>
                 <p className="text-sm">{getHelpContent("filters").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("filters").link}</a>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("filters").link}
+                </a>
               </div>
             </div>
           )}
@@ -1161,7 +1567,9 @@ const CreateBot: React.FC = () => {
           {currentStep >= 16 && (
             <div className="mb-4 p-4 bg-gray-900 shadow-[0_0_15px_#FBC30A] rounded-lg flex items-start">
               <div className="w-3/4 pr-4">
-                <h3 className="text-xl font-bold mb-2">{t("final_step") || "Финальный шаг"}</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  {t("final_step") || "Финальный шаг"}
+                </h3>
                 <div className="flex space-x-4">
                   <button
                     onClick={handleRunBacktest}
@@ -1176,12 +1584,23 @@ const CreateBot: React.FC = () => {
                     {t("create_bot") || "Создать бота"}
                   </button>
                 </div>
-                <p className="mt-4 text-white">{t("backtest_result") || "Результат бэктеста"}: {backtestResult}</p>
+                <p className="mt-4 text-white">
+                  {t("backtest_result") || "Результат бэктеста"}: {backtestResult}
+                </p>
               </div>
               <div className="w-1/4 p-4 bg-gray-800 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">{getHelpContent("final_step").title}</h4>
-                <p className="text-sm">{getHelpContent("final_step").content}</p>
-                <a href="#" className="text-yellow-400 underline mt-2 block">{getHelpContent("final_step").link}</a>
+                <h4 className="text-lg font-bold mb-2">
+                  {getHelpContent("final_step").title}
+                </h4>
+                <p className="text-sm">
+                  {getHelpContent("final_step").content}
+                </p>
+                <a
+                  href="#"
+                  className="text-yellow-400 underline mt-2 block"
+                >
+                  {getHelpContent("final_step").link}
+                </a>
               </div>
             </div>
           )}

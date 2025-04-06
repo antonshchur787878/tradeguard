@@ -1,10 +1,11 @@
+import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home"; // Укажи правильный путь
+import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import ApiKeys from "./pages/ApiKeys";
 import CreateBot from "./pages/CreateBot";
 
-const AppRoutes = () => {
+const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />

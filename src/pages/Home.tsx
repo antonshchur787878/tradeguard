@@ -1,14 +1,47 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { changeLanguage } from "../i18n";
-import TradingViewWidget from "../components/TradingViewWidget";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode"; // Исправленный импорт
 
 const languages = [
   { code: "ru", name: "Русский", flag: "/flags/ru.png" },
   { code: "en", name: "English", flag: "/flags/en.png" },
   { code: "ua", name: "Українська", flag: "/flags/ua.png" },
 ];
+
+// Компонент TradingViewWidget
+const TradingViewWidget: React.FC = () => {
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/tv.js";
+    script.async = true;
+    script.onload = () => {
+      new (window as any).TradingView.widget({
+        width: "100%",
+        height: "100%",
+        symbol: "BTCUSD",
+        interval: "D",
+        timezone: "Etc/UTC",
+        theme: "dark",
+        style: "1",
+        locale: "ru",
+        toolbar_bg: "#f1f3f6",
+        enable_publishing: false,
+        allow_symbol_change: true,
+        container_id: "tradingview_widget",
+      });
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  return <div id="tradingview_widget" className="w-full h-[400px]" />;
+};
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -40,7 +73,7 @@ const Home: React.FC = () => {
     setEmail(e.target.value);
     if (!validateEmail(e.target.value)) {
       setError(t("invalid_email") || "Неверный формат email");
-    } else if (!password) {
+    } else if (!password && !isRegistering) {
       setError(t("fill_all_fields") || "Заполните все поля");
     } else {
       setError(null);
@@ -59,7 +92,7 @@ const Home: React.FC = () => {
   };
 
   const handleSubmit = async (isRegister: boolean) => {
-    if (!email || !password) {
+    if (!email || (!password && !isRegistering)) {
       setError(t("fill_all_fields") || "Заполните все поля");
       return;
     }
@@ -67,7 +100,7 @@ const Home: React.FC = () => {
       setError(t("invalid_email") || "Неверный формат email");
       return;
     }
-    if (password.length < 6) {
+    if (password && password.length < 6) {
       setError(t("short_password") || "Пароль должен быть не менее 6 символов");
       return;
     }
@@ -77,25 +110,69 @@ const Home: React.FC = () => {
       const response = await fetch(`http://localhost:3000${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password }),
+        body: JSON.stringify({ username: email, password: password || "google-auth" }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || (isRegister ? "Ошибка регистрации" : "Ошибка логина"));
+      if (!response.ok) {
+        throw new Error(data.error || (isRegister ? "Ошибка регистрации" : "Ошибка логина"));
+      }
       if (!isRegister) {
         localStorage.setItem("token", data.token);
         navigate("/dashboard");
       } else {
         alert(t("registration_success") || "Регистрация успешна. Теперь вы можете войти.");
+        setIsRegistering(false);
       }
       setError(null);
     } catch (err: any) {
-      setError(isRegister ? `Ошибка регистрации: ${err.message}` : `Ошибка логина: ${err.message}`);
+      setError(
+        isRegister
+          ? `Ошибка регистрации: ${err.message}`
+          : `Ошибка логина: ${err.message}`
+      );
+    }
+  };
+
+  // Обработка входа через Google
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    try {
+      // Декодируем токен Google, чтобы получить данные пользователя
+      const userData: any = jwtDecode(credentialResponse.credential);
+      const { email } = userData;
+
+      // Заполняем поле email
+      setEmail(email);
+      setError(null);
+
+      // Автоматически отправляем запрос на вход
+      const response = await fetch("http://localhost:3000/api/google-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          name: userData.name || "Google User",
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка входа через Google");
+      }
+
+      // Сохраняем токен и перенаправляем на дашборд
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -115,11 +192,16 @@ const Home: React.FC = () => {
             className="bg-gray-900 text-white border border-gray-700 px-3 py-2 rounded-md flex items-center cursor-pointer"
           >
             <img
-              src={languages.find((l) => l.code === selectedLang)?.flag || "/flags/ru.png"}
+              src={
+                languages.find((l) => l.code === selectedLang)?.flag ||
+                "/flags/ru.png"
+              }
               alt={selectedLang}
               className="w-5 h-3 mr-2"
             />
-            <span className="text-sm">{languages.find((l) => l.code === selectedLang)?.name || "Русский"}</span>
+            <span className="text-sm">
+              {languages.find((l) => l.code === selectedLang)?.name || "Русский"}
+            </span>
           </button>
           {isDropdownOpen && (
             <div className="absolute top-full mt-2 bg-gray-900 border border-gray-700 rounded-md w-32">
@@ -129,7 +211,11 @@ const Home: React.FC = () => {
                   onClick={() => handleLanguageChange(lang.code)}
                   className="flex items-center p-2 hover:bg-gray-700 cursor-pointer text-sm"
                 >
-                  <img src={lang.flag} alt={lang.code} className="w-5 h-3 mr-2" />
+                  <img
+                    src={lang.flag}
+                    alt={lang.code}
+                    className="w-5 h-3 mr-2"
+                  />
                   <span>{lang.name}</span>
                 </div>
               ))}
@@ -140,7 +226,7 @@ const Home: React.FC = () => {
 
       <div className="mt-20"></div>
 
-      <div className="grid grid-cols-3 gap-4 max-w-4xl w-full mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl w-full mb-4">
         <div className="bg-gray-900 text-center py-3 text-lg font-black uppercase border border-yellow-400 shadow-[0_0_10px_#FBC30A] rounded-lg">
           {t("hedging_deals") || "Хеджирование сделок"}
         </div>
@@ -152,17 +238,24 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 max-w-4xl w-full">
-        <div className="col-span-2 p-3 border border-yellow-400 shadow-[0_0_15px_#FBC30A] rounded-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl w-full">
+        <div className="col-span-2 border border-yellow-400 shadow-[0_0_15px_#FBC30A] rounded-lg overflow-hidden">
           <TradingViewWidget />
         </div>
         <div className="bg-gray-900 p-5 border border-yellow-400 shadow-[0_0_15px_#FBC30A] rounded-lg">
           <h2 className="text-lg font-bold mb-3">
-            {isRegistering ? t("register_title") || "Регистрация" : t("enter_credentials") || "Введите данные для входа"}
+            {isRegistering
+              ? t("register_title") || "Регистрация"
+              : t("enter_credentials") || "Введите данные для входа"}
           </h2>
-          <button className="bg-blue-600 text-white w-full py-2 rounded-md mb-2 text-sm">
-            {t("login_google") || "Войти через Google"}
-          </button>
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => {
+              setError(t("google_login_failed") || "Ошибка входа через Google");
+            }}
+            text="signin_with"
+            width="100%"
+          />
           <p className="text-center mb-2 text-sm">{t("or") || "или"}</p>
           <input
             className="w-full p-2 border border-yellow-400 bg-gray-800 text-white rounded-md mb-2 text-sm"
@@ -183,10 +276,14 @@ const Home: React.FC = () => {
             onClick={() => handleSubmit(isRegistering)}
             className="bg-yellow-400 text-black w-full py-2 rounded-md font-bold text-sm"
           >
-            {isRegistering ? t("register_button") || "Зарегистрироваться" : t("login_button") || "Войти"}
+            {isRegistering
+              ? t("register_button") || "Зарегистрироваться"
+              : t("login_button") || "Войти"}
           </button>
           <p className="text-center mt-2 text-sm">
-            {isRegistering ? t("have_account") || "Уже есть аккаунт?" : t("no_account") || "Нет аккаунта?"}{" "}
+            {isRegistering
+              ? t("have_account") || "Уже есть аккаунт?"
+              : t("no_account") || "Нет аккаунта?"}{" "}
             <button
               onClick={() => {
                 setIsRegistering(!isRegistering);
@@ -194,7 +291,9 @@ const Home: React.FC = () => {
               }}
               className="text-yellow-400 underline"
             >
-              {isRegistering ? t("login_button") || "Войти" : t("register") || "Зарегистрируйтесь"}
+              {isRegistering
+                ? t("login_button") || "Войти"
+                : t("register") || "Зарегистрируйтесь"}
             </button>
           </p>
         </div>
@@ -204,8 +303,10 @@ const Home: React.FC = () => {
         <h2 className="text-2xl font-black uppercase text-yellow-400 mb-2">
           {t("backtest_statistics") || "Статистика бэктеста"}
         </h2>
-        <p className="text-sm font-bold text-gray-400">{t("historical_data") || "Исторические данные"}</p>
-        <div className="grid grid-cols-3 gap-3 mt-3">
+        <p className="text-sm font-bold text-gray-400">
+          {t("historical_data") || "Исторические данные"}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-3">
           <div className="p-2 border border-yellow-400 shadow-[0_0_10px_#FBC30A] rounded-lg text-sm font-bold">
             {t("profit") || "Прибыль"}: <span className="text-green-400">+172%</span>
           </div>
