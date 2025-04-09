@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`, // Добавляем токен в заголовки
+            "Authorization": `Bearer ${token}`,
           },
           body: JSON.stringify({
             exchangeName: defaultExchange,
@@ -61,11 +61,15 @@ const Dashboard: React.FC = () => {
             apiSecret: selectedApiKey.apiSecret,
           }),
         });
-        if (!response.ok) throw new Error("Failed to fetch balance");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch balance");
+        }
         const data = await response.json();
         setBalance(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        setError(errorMessage);
       }
     };
 
@@ -73,14 +77,18 @@ const Dashboard: React.FC = () => {
       try {
         const response = await fetch("http://localhost:3000/api/commission", {
           headers: {
-            "Authorization": `Bearer ${token}`, // Добавляем токен
+            "Authorization": `Bearer ${token}`,
           },
         });
-        if (!response.ok) throw new Error("Failed to fetch commission");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch commission");
+        }
         const data = await response.json();
         setCommission(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        setError(errorMessage);
       }
     };
 
@@ -88,18 +96,21 @@ const Dashboard: React.FC = () => {
       try {
         const response = await fetch("http://localhost:3000/api/referrals/check", {
           headers: {
-            "Authorization": `Bearer ${token}`, // Добавляем токен
+            "Authorization": `Bearer ${token}`,
           },
         });
-        if (!response.ok) throw new Error("Failed to check referral");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to check referral");
+        }
         const data = await response.json();
         setIsReferral(data.isReferral);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        setError(errorMessage);
       }
     };
 
-    // Вызываем функции только если есть selectedApiKey
     if (selectedApiKey) {
       fetchBalance();
     } else {
@@ -120,7 +131,7 @@ const Dashboard: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, // Добавляем токен
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           walletType,
@@ -128,14 +139,19 @@ const Dashboard: React.FC = () => {
           amount: commission[walletType],
         }),
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to pay commission");
+      }
       const data = await response.json();
       if (data.success) {
         alert(t("commission_paid", { address: data.walletAddress }));
         setCommission((prev) => ({ ...prev, [walletType]: 0 }));
       }
       setIsModalOpen(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
     }
   };
 

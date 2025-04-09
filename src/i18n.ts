@@ -4,6 +4,7 @@ import en from "./locales/en.json";
 import ru from "./locales/ru.json";
 import ua from "./locales/ua.json";
 
+// Инициализация i18next с поддержкой React
 i18n
   .use(initReactI18next)
   .init({

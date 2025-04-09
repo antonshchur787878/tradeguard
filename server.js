@@ -3,14 +3,22 @@ import mongoose from "mongoose";
 import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import path from "path";
-import { fileURLToPath } from "url";
 
 const app = express();
 const port = 3000;
 
-// Middleware
-app.use(cors());
+// Middleware для логирования запросов
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// Middleware для CORS
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(express.json());
 
 // Подключение к MongoDB Atlas
@@ -27,6 +35,7 @@ mongoose
     console.error("Ошибка MongoDB:", err);
     console.error("Код ошибки:", err.code);
     console.error("Сообщение ошибки:", err.message);
+    process.exit(1); // Завершаем процесс, если не удалось подключиться
   });
 
 // Схема пользователя
@@ -73,6 +82,7 @@ app.post("/api/register", async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
+    console.error("Ошибка при регистрации:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -86,7 +96,7 @@ app.post("/api/login", async (req, res) => {
     }
 
     const user = await User.findOne({ username });
-    if (!user) {
+    if (!user || !user.password) {
       return res.status(400).json({ error: "Invalid username or password" });
     }
 
@@ -98,6 +108,7 @@ app.post("/api/login", async (req, res) => {
     const token = jwt.sign({ userId: user._id }, "your_jwt_secret", { expiresIn: "1h" });
     res.json({ token });
   } catch (err) {
+    console.error("Ошибка при входе:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -111,6 +122,7 @@ app.post("/api/google-login", async (req, res) => {
     }
 
     let user = await User.findOne({ username: email });
+    let isNewUser = false;
     if (!user) {
       user = new User({
         username: email,
@@ -118,11 +130,13 @@ app.post("/api/google-login", async (req, res) => {
         googleId: email,
       });
       await user.save();
+      isNewUser = true;
     }
 
     const token = jwt.sign({ userId: user._id }, "your_jwt_secret", { expiresIn: "1h" });
-    res.json({ token, isNewUser: !user }); // Добавляем флаг isNewUser
+    res.json({ token, isNewUser });
   } catch (err) {
+    console.error("Ошибка при входе через Google:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -147,6 +161,7 @@ app.get("/api/user-data", authenticateToken, async (req, res) => {
     };
     res.json(userData);
   } catch (err) {
+    console.error("Ошибка при получении данных пользователя:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -156,6 +171,7 @@ app.get("/api/commission", authenticateToken, (req, res) => {
   try {
     res.json({ spot: 0.1, futures: 0.2 });
   } catch (err) {
+    console.error("Ошибка при получении комиссии:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
@@ -164,6 +180,7 @@ app.get("/api/referrals/check", authenticateToken, (req, res) => {
   try {
     res.json({ isReferral: true });
   } catch (err) {
+    console.error("Ошибка при проверке рефералов:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
@@ -176,6 +193,7 @@ app.post("/get-balance", authenticateToken, (req, res) => {
     }
     res.json({ total: 1000, spot: 500, futures: 500 });
   } catch (err) {
+    console.error("Ошибка при получении баланса:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
@@ -188,47 +206,43 @@ app.post("/api/commission/pay", authenticateToken, (req, res) => {
     }
     res.json({ success: true, walletAddress: "0xExampleAddress" });
   } catch (err) {
+    console.error("Ошибка при оплате комиссии:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
 
 // Новый маршрут для пополнения баланса
-app.post("/api/user/top-up", authenticateToken, (req, res) => {
-  const { amount } = req.body;
-  const userId = req.userId;
+app.post("/api/user/top-up", authenticateToken, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const userId = req.userId;
 
-  // Логика пополнения баланса в базе данных
-  // Пример:
-  // db.updateUserBalance(userId, amount)
-  //   .then(newBalance => res.json({ newBalance }))
-  //   .catch(err => res.status(500).json({ error: 'Ошибка сервера' }));
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
 
-  res.status(200).json({ newBalance: 100 }); // Временный ответ для примера
+    // Здесь должна быть логика обновления баланса в базе данных
+    // Пример: await User.updateOne({ _id: userId }, { $inc: { balance: amount } });
+    res.status(200).json({ newBalance: 100 }); // Временный ответ
+  } catch (err) {
+    console.error("Ошибка при пополнении баланса:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Новый маршрут для получения баланса
-app.get("/api/user/balance", authenticateToken, (req, res) => {
-  const userId = req.userId;
+app.get("/api/user/balance", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-  // Логика получения баланса пользователя из базы данных
-  // Пример:
-  // db.getUserBalance(userId)
-  //   .then(balance => res.json({ balance, isReferral: true }))
-  //   .catch(err => res.status(500).json({ error: 'Ошибка сервера' }));
-
-  res.status(200).json({ balance: 100, isReferral: true }); // Временный ответ для примера
-});
-
-// Получение пути к файлу и директории для ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Обработка маршрутов на стороне клиента
-app.use((req, res, next) => {
-  if (req.accepts('html') && !req.is('json') && !req.path.includes('.')) {
-    res.sendFile(path.resolve(__dirname, 'index.html')); // Укажите путь к вашему index.html
-  } else {
-    next();
+    // Здесь должна быть логика получения баланса из базы данных
+    // Пример: const balance = user.balance || 0;
+    res.status(200).json({ balance: 100, isReferral: true }); // Временный ответ
+  } catch (err) {
+    console.error("Ошибка при получении баланса:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
